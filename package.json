@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "change-case": "^3.0.2"
+  },
+  "name": "babel-plugin-reduxsauce-reducer",
+  "version": "1.0.0",
+  "description": "Babel plugin for generating Redux reducers from actions",
+  "main": "index.js",
+  "repository": "https://www.github.com/alin23/babel-plugin-reduxsauce-reducer",
+  "author": "Alin Panaitiu",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-preset-env": "^1.7.0"
+  }
+}
