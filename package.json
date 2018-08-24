@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "build": "coffee -c *.coffee && babel -d . *.js"
+  },
   "dependencies": {
     "change-case": "^3.0.2"
   },
@@ -10,7 +13,10 @@
   "author": "Alin Panaitiu",
   "license": "MIT",
   "devDependencies": {
-    "babel-core": "^6.26.3",
-    "babel-preset-env": "^1.7.0"
+    "@babel/cli": "^7.0.0-rc.2",
+    "@babel/core": "^7.0.0-rc.2",
+    "@babel/preset-env": "^7.0.0-rc.2",
+    "coffeescript": "^2.3.1",
+    "prettier-plugin-coffeescript": "github:alin23/prettier-plugin-coffeescript"
   }
 }
