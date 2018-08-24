@@ -62,7 +62,7 @@ export default ({ types: t, template }) ->
         }
 
         ACTION_NAME = function(state, {STATE_PROP}) {
-            return Object.assign(state, {STATE_PROP})
+            return Object.assign({}, state, {STATE_PROP})
         };
         """
         sourceType: "module"

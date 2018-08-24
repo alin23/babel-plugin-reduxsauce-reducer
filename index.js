@@ -52,7 +52,7 @@ function _default({
     sourceType: "module",
     placeholderPattern: false
   });
-  actionCode = template("if (typeof ACTION_NAME == 'undefined') {\n    var ACTION_NAME = null;\n}\n\nACTION_NAME = function(state, {STATE_PROP}) {\n    return Object.assign(state, {STATE_PROP})\n};", {
+  actionCode = template("if (typeof ACTION_NAME == 'undefined') {\n    var ACTION_NAME = null;\n}\n\nACTION_NAME = function(state, {STATE_PROP}) {\n    return Object.assign({}, state, {STATE_PROP})\n};", {
     sourceType: "module"
   });
   return {
