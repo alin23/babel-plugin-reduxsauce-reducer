@@ -21,9 +21,10 @@ getActionHandlersDefinition = (action) ->
             path.get("expression").isAssignmentExpression() and
             path.node.expression.left?.name is "ACTION_HANDLERS")
 
-actionsDefinition = null
-actionObjectExpr = null
-actionHandlersDefinition = null
+globals =
+    actionsDefinition: null
+    actionHandlersDefinition: null
+    prefix: null
 
 export default ({ types: t, template }) ->
     importCode = template(
@@ -35,10 +36,11 @@ export default ({ types: t, template }) ->
     )
     exportCode = template(
         """
-        export { Types };
-        export default Creators;
+        var ACTIONS = Creators;
+        export { Types as TYPES };
+        export default ACTIONS;
         """
-        sourceType: "module", placeholderPattern: false
+        sourceType: "module"
     )
     actionsCode = template(
         """
@@ -80,16 +82,26 @@ export default ({ types: t, template }) ->
                 )
                     return
                 path.get("body.0").insertBefore(importCode())
-                path.get("body.#{ path.node.body.length - 1 }").insertAfter(exportCode())
+
+                prefix = pascal(globals.prefix.replace("/", ""))
+                path.get("body.#{ path.node.body.length - 1 }").insertAfter(
+                    exportCode(
+                        ACTIONS: t.identifier("#{ prefix }Actions")
+                        TYPES: t.identifier("#{ prefix }Types")
+                    )
+                )
                 return
         AssignmentExpression: (path) ->
+            if path.node.left.name is "PREFIX"
+                globals.prefix = path.node.right.value
+
             if (
                 path.node.left.name is "INITIAL_STATE" and
                 path.get("right").isCallExpression() and
                 path.node.right.callee.name is "Immutable"
             )
                 path.insertBefore(actionsCode())
-                actionsDefinition = getActionsDefinition(path)
+                globals.actionsDefinition = getActionsDefinition(path)
                 state = path.node.right.arguments[0].properties
                 for prop in state
                     path.insertAfter(
@@ -117,20 +129,19 @@ export default ({ types: t, template }) ->
                             t.StringLiteral(prop.key.name))
                     )
 
-            actionsDefinition = getActionsDefinition(action)
-            actionHandlersDefinition = getActionHandlersDefinition(action)
+            globals.actionsDefinition = getActionsDefinition(action)
+            globals.actionHandlersDefinition = getActionHandlersDefinition(action)
 
-            if actionsDefinition?
-                actionProps = actionsDefinition.node.expression.right.properties
+            if globals.actionsDefinition?
+                actionProps = globals.actionsDefinition.node.expression.right.properties
                 if not actionProps.find((prop) -> prop.key.name is actionName)
                     actionProps.push(t.objectProperty(t.identifier(actionName), actionParams))
 
-            if not actionHandlersDefinition?
+            if not globals.actionHandlersDefinition?
                 siblings = action.getAllNextSiblings()
                 lastAction = siblings[siblings.length - 1] ? action
                 lastAction.insertAfter(actionHandlersCode())
-                actionHandlersDefinition = getActionHandlersDefinition(action)
-                globalActionHandlersDefinition = actionHandlersDefinition
+                globals.actionHandlersDefinition = getActionHandlersDefinition(action)
 
             handler = t.objectProperty(
                 t.templateLiteral(
@@ -149,9 +160,9 @@ export default ({ types: t, template }) ->
                 true
             )
 
-            handlers = actionHandlersDefinition.node.expression.right.properties
+            handlers = globals.actionHandlersDefinition.node.expression.right.properties
             if not handlers?
-                actionHandlersDefinition.node.expression.right.properties = [handler]
+                globals.actionHandlersDefinition.node.expression.right.properties = [handler]
             else if not handlers.find((prop) -> prop.value.name is actionName)
                 handlers.push(handler)
 
