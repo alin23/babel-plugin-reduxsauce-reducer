@@ -1,4 +1,11 @@
-const { constant, pascal } = require('change-case')
+// const { constant, pascal } = require('change-case')
+
+function constant(argument) {
+    return argument
+}
+function pascal(argument) {
+    return argument
+}
 
 function isReducer(path) {
     return (
@@ -9,27 +16,33 @@ function isReducer(path) {
 }
 
 function getActionsDefinition(action) {
-    return action
+    let actionDeclaration = action
         .getAllPrevSiblings()
         .find(
             (path) =>
-                path.isExpressionStatement() &&
-                path.get('expression').isAssignmentExpression() &&
-                path.node.expression.left.name === 'ACTIONS'
+                path.isVariableDeclaration() &&
+                path.node.declarations[0].id.name === 'ACTIONS'
         )
+
+    if (actionDeclaration) {
+        return actionDeclaration.node.declarations[0].init
+    }
+    return null
 }
 
 function getActionHandlersDefinition(action) {
-    return action
+    let actionDeclaration = action
         .getAllNextSiblings()
         .find(
             (path) =>
-                path.isExpressionStatement() &&
-                path.get('expression').isAssignmentExpression() &&
-                (path.node.expression.left !== null
-                    ? path.node.expression.left.name
-                    : null) === 'ACTION_HANDLERS'
+                path.isVariableDeclaration() &&
+                path.node.declarations[0].id.name === 'ACTION_HANDLERS'
         )
+
+    if (actionDeclaration) {
+        return actionDeclaration.node.declarations[0].init
+    }
+    return null
 }
 
 const globals = {
@@ -132,15 +145,11 @@ function ACTION_NAME(state, {STATE_PROP}) {
                     return
                 }
 
-                const action = path.findParent((pth) => pth.isExpressionStatement())
-                if (action === null) {
-                    return
-                }
-
-                const actionName = action.node.expression.left.name
+                let action = path
+                const actionName = action.node.id.name
                 let actionParams = t.nullLiteral()
                 if (path.node.params[1].name !== 'ctx') {
-                    t.arrayExpression(
+                    actionParams = t.arrayExpression(
                         path.node.params[1].properties.map((prop) =>
                             t.StringLiteral(prop.key.name)
                         )
@@ -150,8 +159,7 @@ function ACTION_NAME(state, {STATE_PROP}) {
                 globals.actionHandlersDefinition = getActionHandlersDefinition(action)
 
                 if (globals.actionsDefinition !== null) {
-                    const actionProps =
-                        globals.actionsDefinition.node.expression.right.properties
+                    const actionProps = globals.actionsDefinition.properties
                     if (!actionProps.find((prop) => prop.key.name === actionName)) {
                         actionProps.push(
                             t.objectProperty(t.identifier(actionName), actionParams)
@@ -160,10 +168,11 @@ function ACTION_NAME(state, {STATE_PROP}) {
                 }
 
                 if (globals.actionHandlersDefinition === null) {
-                    let left
                     const siblings = action.getAllNextSiblings()
-                    const lastAction =
-                        (left = siblings[siblings.length - 1]) !== null ? left : action
+                    let lastAction = action
+                    if (siblings[siblings.length - 1] !== null) {
+                        lastAction = siblings[siblings.length - 1]
+                    }
                     lastAction.insertAfter(actionHandlersCode())
                     globals.actionHandlersDefinition = getActionHandlersDefinition(action)
                 }
@@ -185,12 +194,9 @@ function ACTION_NAME(state, {STATE_PROP}) {
                     true
                 )
 
-                const handlers =
-                    globals.actionHandlersDefinition.node.expression.right.properties
+                const handlers = globals.actionHandlersDefinition.properties
                 if (handlers === null) {
-                    globals.actionHandlersDefinition.node.expression.right.properties = [
-                        handler
-                    ]
+                    globals.actionHandlersDefinition.properties = [handler]
                 } else if (!handlers.find((prop) => prop.value.name === actionName)) {
                     handlers.push(handler)
                 }

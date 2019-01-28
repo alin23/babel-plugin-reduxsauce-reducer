@@ -6,7 +6,7 @@
     "change-case": "^3.0.2"
   },
   "name": "babel-plugin-reduxsauce-reducer",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "Babel plugin for generating Redux reducers from actions",
   "main": "index.js",
   "repository": "https://www.github.com/alin23/babel-plugin-reduxsauce-reducer",
