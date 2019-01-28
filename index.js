@@ -1,11 +1,4 @@
-// const { constant, pascal } = require('change-case')
-
-function constant(argument) {
-    return argument
-}
-function pascal(argument) {
-    return argument
-}
+const { constant, pascal } = require('change-case')
 
 function isReducer(path) {
     return (
