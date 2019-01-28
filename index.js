@@ -40,45 +40,40 @@ const globals = {
 
 module.exports = function({ types: t, template }) {
     const importCode = template(
-        `\
+        `
 import { createActions, createReducer } from 'reduxsauce';
 `,
         { sourceType: 'module', placeholderPattern: false }
     )
     const exportCode = template(
-        `\
+        `
 var ACTIONS = Creators;
 export { Types as TYPES };
-export default ACTIONS;\
+export default ACTIONS;
 `,
         { sourceType: 'module' }
     )
     const actionsCode = template(
-        `\
+        `
 var ACTIONS = {};
 var Types, Creators;
-({ Types, Creators } = createActions(ACTIONS, { prefix: PREFIX }));\
+({ Types, Creators } = createActions(ACTIONS, { prefix: PREFIX }));
 `,
         { sourceType: 'module', placeholderPattern: false }
     )
 
     const actionHandlersCode = template(
-        `\
+        `
 var ACTION_HANDLERS = {};
-export var reducer = createReducer(INITIAL_STATE, ACTION_HANDLERS);\
+export var reducer = createReducer(INITIAL_STATE, ACTION_HANDLERS);
 `,
         { sourceType: 'module', placeholderPattern: false }
     )
     const actionCode = template(
-        `\
-var ACTION_NAME;
-if (typeof ACTION_NAME == 'undefined') {
-    ACTION_NAME = null;
+        `
+function ACTION_NAME(state, {STATE_PROP}) {
+    return Object.assign({}, state, {STATE_PROP});
 }
-
-ACTION_NAME = function(state, {STATE_PROP}) {
-    return Object.assign({}, state, {STATE_PROP})
-};\
 `,
         { sourceType: 'module' }
     )
@@ -108,21 +103,20 @@ ACTION_NAME = function(state, {STATE_PROP}) {
                     )
                 }
             },
-            VariableDeclarator(path) {
-                if (path.node.id.name === 'PREFIX') {
-                    globals.prefix = path.node.init.value
+            VariableDeclaration(path) {
+                if (path.node.declarations[0].id.name === 'PREFIX') {
+                    globals.prefix = path.node.declarations[0].init.value
                 }
 
                 if (
-                    path.node.id.name === 'INITIAL_STATE' &&
-                    path.get('init').isCallExpression() &&
-                    path.node.init.callee.name === 'Immutable'
+                    path.node.declarations[0].id.name === 'INITIAL_STATE' &&
+                    path.get('declarations.0.init').isCallExpression() &&
+                    path.node.declarations[0].init.callee.name === 'Immutable'
                 ) {
-                    path.findParent((pth) => pth.isVariableDeclaration()).insertBefore(
-                        actionsCode()
-                    )
+                    path.insertBefore(actionsCode())
+
                     globals.actionsDefinition = getActionsDefinition(path)
-                    const state = path.node.init.arguments[0].properties
+                    const state = path.node.declarations[0].init.arguments[0].properties
                     for (let prop of state) {
                         path.insertAfter(
                             actionCode({
