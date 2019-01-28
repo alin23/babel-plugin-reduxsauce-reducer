@@ -38,7 +38,7 @@ const globals = {
     prefix: null
 }
 
-exports.default = (function({ types: t, template }) {
+module.exports = function({ types: t, template }) {
     const importCode = template(
         `\
 import { createActions, createReducer } from 'reduxsauce';
@@ -203,4 +203,4 @@ ACTION_NAME = function(state, {STATE_PROP}) {
             }
         }
     }
-})
+}
