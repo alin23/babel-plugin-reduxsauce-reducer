@@ -162,9 +162,9 @@ function ACTION_NAME(state, {STATE_PROP}) {
 
                 if (globals.actionHandlersDefinition === null) {
                     const siblings = action.getAllNextSiblings()
-                    let lastAction = action
-                    if (siblings[siblings.length - 1] !== null) {
-                        lastAction = siblings[siblings.length - 1]
+                    let lastAction = siblings[siblings.length - 1]
+                    if (lastAction === null || typeof lastAction === 'undefined') {
+                        lastAction = action
                     }
                     lastAction.insertAfter(actionHandlersCode())
                     globals.actionHandlersDefinition = getActionHandlersDefinition(action)
