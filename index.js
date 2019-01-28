@@ -1,4 +1,4 @@
-import { constant, pascal } from 'change-case'
+const { constant, pascal } = require('change-case')
 
 function isReducer(path) {
     return (
@@ -38,7 +38,7 @@ const globals = {
     prefix: null
 }
 
-export default (function({ types: t, template }) {
+exports.default = (function({ types: t, template }) {
     const importCode = template(
         `\
 import { createActions, createReducer } from 'reduxsauce';
