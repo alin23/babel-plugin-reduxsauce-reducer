@@ -3,7 +3,12 @@
     "build": "coffee -c *.coffee && babel -d . *.js"
   },
   "dependencies": {
-    "change-case": "^3.0.2"
+    "change-case": "^3.0.2",
+    "diff": "^4.0.1",
+    "handlebars": "^4.1.2",
+    "js-yaml": "^3.13.1",
+    "lodash": "^4.17.15",
+    "mem": "^5.1.1"
   },
   "name": "babel-plugin-reduxsauce-reducer",
   "version": "1.1.0",
